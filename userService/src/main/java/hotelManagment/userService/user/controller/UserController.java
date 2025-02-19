@@ -1,9 +1,12 @@
 package hotelManagment.userService.user.controller;
 
-import hotelManagment.userService.user.entity.User;
+import hotelManagment.userService.user.Dto.request.UserRequest;
+import hotelManagment.userService.user.Dto.response.CommonResponse;
+import hotelManagment.userService.user.Dto.response.UserResponse;
+import hotelManagment.userService.user.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import hotelManagment.userService.user.service.UserService;
 
 @RestController
 @RequestMapping("/api/users")
@@ -16,15 +19,18 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) {
-        User savedUser = userService.createUser(user);
-        return ResponseEntity.ok(savedUser);
+    public ResponseEntity<CommonResponse<UserResponse>> registerUser(@RequestBody UserRequest userRequest) {
+        CommonResponse<UserResponse> response = userService.createUser(userRequest);
+        return ResponseEntity.status(response.getCode()).body(response);
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<User> getUser(@PathVariable String username) {
-        return userService.getUserByUsername(username)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CommonResponse<UserResponse>> getUserByUsername(@PathVariable String username) {
+        CommonResponse<UserResponse> response = userService.getUserByUsername(username);
+        if (response.getCode() == 200) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 }

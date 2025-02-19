@@ -1,11 +1,12 @@
 package hotelManagment.userService.user.service;
-
-import hotelManagment.userService.user.entity.User;
+import hotelManagment.userService.user.Dto.request.UserRequest;
+import hotelManagment.userService.user.Dto.response.CommonResponse;
+import hotelManagment.userService.user.Dto.response.UserResponse;
 
 import java.util.Optional;
 
 public interface UserService {
-    User createUser(User user);
+    CommonResponse createUser(UserRequest user);
 
-    Optional<User> getUserByUsername(String username);
+    CommonResponse<UserResponse> getUserByUsername(String username);
 }

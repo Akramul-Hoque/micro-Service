@@ -2,7 +2,6 @@ package hotelManagment.userService.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 @Entity
 @Table(name = "users")
 @Getter
@@ -11,10 +10,12 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Basic user information
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -25,5 +26,21 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String role;  // USER or ADMIN
+    private String role;  // e.g., USER or ADMIN
+
+    // Additional fields from your original POJO
+    private String age;
+    private String address;
+    private String dob;
+    private String nid;
+
+    // One-to-one association for permanent address
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "permanent_address_id", referencedColumnName = "id")
+    private PermanentAddress userPermanentAddress;
+
+    // One-to-one association for present address
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "present_address_id", referencedColumnName = "id")
+    private PresentAddress userPresentAddress;
 }
