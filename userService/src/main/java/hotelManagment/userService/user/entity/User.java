@@ -9,11 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class User extends BaseEntity{
 
     // Basic user information
     @Column(nullable = false, unique = true)
@@ -30,7 +26,7 @@ public class User {
 
     // Additional fields from your original POJO
     private String age;
-    private String address;
+//    private String address;
     private String dob;
     private String nid;
 

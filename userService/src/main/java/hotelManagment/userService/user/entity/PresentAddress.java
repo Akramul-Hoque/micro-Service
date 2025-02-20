@@ -10,10 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PresentAddress {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class PresentAddress extends BaseEntity{
     private String road;
     private String post;
     private String city;

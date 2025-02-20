@@ -1,6 +1,9 @@
 package hotelManagment.userService.user.service;
 
+import hotelManagment.userService.user.Dto.request.UserPermanentAddress;
+import hotelManagment.userService.user.Dto.request.UserPresentAddress;
 import hotelManagment.userService.user.Dto.request.UserRequest;
+import hotelManagment.userService.user.Dto.response.AddressResponse;
 import hotelManagment.userService.user.Dto.response.UserResponse;
 import hotelManagment.userService.user.entity.User;
 import hotelManagment.userService.user.Dto.response.CommonResponse;
@@ -46,19 +49,22 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
     @Override
     public CommonResponse<UserResponse> getUserByUsername(String username) {
         Optional<User> userOpt = userRepository.findByUsername(username);
 
         if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            // Map the User entity to the UserResponse DTO
+            User user = userOpt.get(); // Get the User entity
             UserResponse userResponse = modelMapper.map(user, UserResponse.class);
 
+            AddressResponse presentAddress = modelMapper.map(user.getUserPresentAddress(), AddressResponse.class);
+            AddressResponse permanentAddress = modelMapper.map(user.getUserPermanentAddress(), AddressResponse.class);
+            userResponse.setUserPresentAddress(presentAddress);
+            userResponse.setUserPermanentAddress(permanentAddress);
             return CommonResponse.successResponse(userResponse, "User retrieved successfully");
         } else {
             return CommonResponse.errorResponse(404, "User not found");
         }
     }
+
 }
