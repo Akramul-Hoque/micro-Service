@@ -24,10 +24,11 @@ public class UserController {
     }
 
 
-//    @PostMapping("/login")
-//    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-//        return ResponseEntity.ok(authService.authenticateUser(request));
-//    }
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginRequest loginRequest) {
+        LoginResponse loginResponse = authService.authenticateUser(loginRequest);
+        return ResponseEntity.ok(loginResponse);
+    }
 
     @PostMapping("/register")
     public ResponseEntity<CommonResponse<UserResponse>> registerUser(@RequestBody UserRequest userRequest) {

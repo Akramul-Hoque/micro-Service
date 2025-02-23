@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PermanentAddress extends BaseEntity{
+public class PermanentAddress{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

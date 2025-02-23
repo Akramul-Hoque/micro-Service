@@ -2,6 +2,13 @@ package hotelManagment.userService.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -9,7 +16,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User extends BaseEntity{
+public class User implements UserDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     // Basic user information
     @Column(nullable = false, unique = true)
@@ -26,7 +37,6 @@ public class User extends BaseEntity{
 
     // Additional fields from your original POJO
     private String age;
-//    private String address;
     private String dob;
     private String nid;
 
@@ -39,4 +49,42 @@ public class User extends BaseEntity{
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "present_address_id", referencedColumnName = "id")
     private PresentAddress userPresentAddress;
+
+    // Implement UserDetails methods
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Convert the role to a GrantedAuthority
+        return Collections.singletonList(new SimpleGrantedAuthority(role));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // Modify as needed
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // Modify as needed
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // Modify as needed
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // Modify as needed
+    }
 }
