@@ -1,10 +1,14 @@
 package hotelManagment.userService.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import hotelManagment.userService.common.response.base.ErrorResponse;
+import hotelManagment.userService.exception.JwtTokenMissingException;
 import hotelManagment.userService.util.JwtTokenUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,9 +28,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // List of whitelisted paths that don't need authentication
     private static final List<String> WHITELISTED_PATHS = Arrays.asList(
+            "/api/v1/user/swagger-ui.html",
             "/api/v1/user/swagger-ui/",
+            "/api/v1/user/v3/api-docs",
             "/api/v1/user/v3/api-docs/",
-            "/api/users/login"
+            "/v3/api-docs",
+            "/v3/api-docs/",
+            "/swagger-ui/",
+            "/swagger-ui.html"
     );
 
     public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil, UserDetailsService userDetailsService) {
@@ -35,26 +44,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Check if the request is for a whitelisted path
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
         String path = request.getRequestURI();
+
         if (isWhitelisted(path)) {
-            filterChain.doFilter(request, response); // Continue the filter chain without authentication
+            filterChain.doFilter(request, response);
             return;
         }
 
-        // Otherwise, perform JWT validation for other requests
-        String jwtToken = extractToken(request); // Extract token from header
-        if (jwtToken != null && jwtTokenUtil.validateToken(jwtToken)) {
-            String username = jwtTokenUtil.extractUsername(jwtToken);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwtToken = extractToken(request);
+
+        if (jwtToken == null || !jwtTokenUtil.validateToken(jwtToken)) {
+            ErrorResponse error = new ErrorResponse(HttpStatus.UNAUTHORIZED, 401, "Invalid or missing token");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            new ObjectMapper().writeValue(response.getWriter(), error);
+            return;
+
         }
 
-        filterChain.doFilter(request, response); // Proceed with the filter chain
+        String username = jwtTokenUtil.extractUsername(jwtToken);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        filterChain.doFilter(request, response);
     }
+
+
+
+
 
     // Method to check if the request path is whitelisted
     private boolean isWhitelisted(String path) {
