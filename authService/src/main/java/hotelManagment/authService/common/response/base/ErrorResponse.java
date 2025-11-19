@@ -20,4 +20,6 @@ public class ErrorResponse extends ApiResponse implements Serializable {
         this.data = null;
     }
 
+    public ErrorResponse(String tokenGenerationFailed) {
+    }
 }

@@ -1,48 +1,42 @@
 package hotelManagment.userService.user.controller;
 
+import hotelManagment.userService.exception.exception.InvalidCredentialsException;
 import hotelManagment.userService.user.Dto.request.LoginRequest;
-import hotelManagment.userService.user.Dto.request.UserRequest;
-import hotelManagment.userService.user.Dto.response.CommonResponse;
-import hotelManagment.userService.user.Dto.response.LoginResponse;
-import hotelManagment.userService.user.Dto.response.UserResponse;
-import hotelManagment.userService.user.service.AuthService;
+import hotelManagment.userService.user.Dto.response.UserValidationResponse;
+import hotelManagment.userService.user.entity.User;
 import hotelManagment.userService.user.service.UserService;
+import hotelManagment.userService.common.response.base.CommonResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/internal/users/")
 public class UserController {
-
     private final UserService userService;
-    private final AuthService authService;
 
-    public UserController(UserService userService, AuthService authService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.authService = authService;
     }
+    @PostMapping("validate-login")
+    public ResponseEntity<CommonResponse> validateLogin(@RequestBody LoginRequest request) {
+        try {
+            User user = userService.validateUser(request.getUserName(), request.getPassword());
 
+            UserValidationResponse data = new UserValidationResponse(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getRole()
+            );
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginRequest loginRequest) {
-        LoginResponse loginResponse = authService.authenticateUser(loginRequest);
-        return ResponseEntity.ok(loginResponse);
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<CommonResponse<UserResponse>> registerUser(@RequestBody UserRequest userRequest) {
-        CommonResponse<UserResponse> response = userService.createUser(userRequest);
-        return ResponseEntity.status(response.getCode()).body(response);
-    }
-
-    @GetMapping("/{username}")
-    public ResponseEntity<CommonResponse<UserResponse>> getUserByUsername(@PathVariable String username) {
-        CommonResponse<UserResponse> response = userService.getUserByUsername(username);
-        if (response.getCode() == 200) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            CommonResponse resp = CommonResponse.success(data, "Validated", 0, HttpStatus.OK.value());
+            return ResponseEntity.ok(resp);
+        } catch ( InvalidCredentialsException e) {
+            CommonResponse resp = CommonResponse.failure("INVALID_CREDENTIALS", 1002, HttpStatus.UNAUTHORIZED.value());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
         }
     }
 }

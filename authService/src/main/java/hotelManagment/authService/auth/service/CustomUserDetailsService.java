@@ -1,6 +1,5 @@
-//package hotelManagment.userService.user.service;
+//package hotelManagment.authService.auth.service;
 //
-//import hotelManagment.userService.user.repository.UserRepository;
 //import org.springframework.security.core.userdetails.UserDetails;
 //import org.springframework.security.core.userdetails.UserDetailsService;
 //import org.springframework.security.core.userdetails.UsernameNotFoundException;

@@ -3,7 +3,10 @@ package hotelManagment.userService.exception.base;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import hotelManagment.userService.common.response.base.ErrorResponse;
-import hotelManagment.userService.exception.*;
+import hotelManagment.userService.exception.exception.ApiException;
+import hotelManagment.userService.exception.exception.InvalidCredentialsException;
+import hotelManagment.userService.exception.exception.NoDataFoundException;
+import hotelManagment.userService.exception.exception.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class AppExceptionHandler   {
@@ -139,44 +145,44 @@ public class AppExceptionHandler   {
 
 
     // custom exception start
-
-    @ExceptionHandler(value = JwtTokenMissingException.class)
-    @ResponseBody
-    public ResponseEntity<?> handleException(JwtTokenMissingException exception) {
-        HttpStatus httpStatus = HttpStatus.UNAUTHORIZED;
-        String message = exception.getMessage();
-
-        ErrorResponse errorResponse = new ErrorResponse(httpStatus, 99, message);
-        Gson gson = new GsonBuilder().serializeNulls().create();
-        String jsonResponse = gson.toJson(errorResponse);
-        return ResponseEntity.status(httpStatus).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).body(jsonResponse);
-    }
-
-
-    @ExceptionHandler(value = TokenExpiredException.class)
-    @ResponseBody
-    public ResponseEntity<?> handleException(TokenExpiredException exception) {
-        HttpStatus httpStatus = HttpStatus.FORBIDDEN;
-        String message = exception.getMessage();
-
-        ErrorResponse errorResponse = new ErrorResponse(httpStatus, 99, message);
-        Gson gson = new GsonBuilder().serializeNulls().create();
-        String jsonResponse = gson.toJson(errorResponse);
-        return ResponseEntity.status(httpStatus).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).body(jsonResponse);
-    }
-
-
-    @ExceptionHandler(value = PasswordMismatchException.class)
-    @ResponseBody
-    public ResponseEntity<?> handleException(PasswordMismatchException exception) {
-        HttpStatus httpStatus = HttpStatus.OK;
-        String message = exception.getMessage();
-
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, 99, message);
-        Gson gson = new GsonBuilder().serializeNulls().create();
-        String jsonResponse = gson.toJson(errorResponse);
-        return ResponseEntity.status(httpStatus).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).body(jsonResponse);
-    }
+//
+//    @ExceptionHandler(value = JwtTokenMissingException.class)
+//    @ResponseBody
+//    public ResponseEntity<?> handleException(JwtTokenMissingException exception) {
+//        HttpStatus httpStatus = HttpStatus.UNAUTHORIZED;
+//        String message = exception.getMessage();
+//
+//        ErrorResponse errorResponse = new ErrorResponse(httpStatus, 99, message);
+//        Gson gson = new GsonBuilder().serializeNulls().create();
+//        String jsonResponse = gson.toJson(errorResponse);
+//        return ResponseEntity.status(httpStatus).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).body(jsonResponse);
+//    }
+//
+//
+//    @ExceptionHandler(value = TokenExpiredException.class)
+//    @ResponseBody
+//    public ResponseEntity<?> handleException(TokenExpiredException exception) {
+//        HttpStatus httpStatus = HttpStatus.FORBIDDEN;
+//        String message = exception.getMessage();
+//
+//        ErrorResponse errorResponse = new ErrorResponse(httpStatus, 99, message);
+//        Gson gson = new GsonBuilder().serializeNulls().create();
+//        String jsonResponse = gson.toJson(errorResponse);
+//        return ResponseEntity.status(httpStatus).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).body(jsonResponse);
+//    }
+//
+//
+//    @ExceptionHandler(value = PasswordMismatchException.class)
+//    @ResponseBody
+//    public ResponseEntity<?> handleException(PasswordMismatchException exception) {
+//        HttpStatus httpStatus = HttpStatus.OK;
+//        String message = exception.getMessage();
+//
+//        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, 99, message);
+//        Gson gson = new GsonBuilder().serializeNulls().create();
+//        String jsonResponse = gson.toJson(errorResponse);
+//        return ResponseEntity.status(httpStatus).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).body(jsonResponse);
+//    }
 
 
     @ExceptionHandler(value = ValidationException.class)
@@ -216,6 +222,14 @@ public class AppExceptionHandler   {
         return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorResponse);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<?> handleInvalidCredentials(InvalidCredentialsException ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("success", false);
+        error.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
 

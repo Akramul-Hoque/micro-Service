@@ -2,60 +2,90 @@ package hotelManagment.authService.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
 @Component
 public class JwtTokenUtil {
-    private final String secretKey = "a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6";
-    private final long expirationTime = 1000 * 60 * 60;  // 1 hour in milliseconds
 
-    public String generateToken(Authentication authentication) {
-        String username = getUsernameFromAuthentication(authentication);
+    @Value("${jwt.secret:a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8s9T0u1V2w3X4y5Z6}")
+    private String secretKey;
 
+    @Value("${jwt.expiration:3600000}")
+    private long expirationTime;
+
+    // Generate token with username, role, and userId
+    public String generateToken(String username, String role, Long userId) {
         return JWT.create()
                 .withSubject(username)
+                .withClaim("role", role)
+                .withClaim("userId", userId)
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime)) // Set expiration
-                .sign(Algorithm.HMAC512(secretKey)); // Sign the JWT with the secret key
-    }
-
-    private String getUsernameFromAuthentication(Authentication authentication) {
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails) {
-            return ((UserDetails) principal).getUsername();
-        }
-        return principal.toString();  // If principal is not an instance of UserDetails, fallback to toString()
+                .withExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
+                .sign(Algorithm.HMAC512(secretKey));
     }
 
     public String extractUsername(String token) {
-        return extractClaim(token, DecodedJWT::getSubject);  // Subject is the username in our case
+        try {
+            DecodedJWT decodedJWT = decodeToken(token);
+            return decodedJWT.getSubject();
+        } catch (JWTDecodeException e) {
+            return null;
+        }
+    }
+
+    public String extractRole(String token) {
+        try {
+            DecodedJWT decodedJWT = decodeToken(token);
+            return decodedJWT.getClaim("role").asString();
+        } catch (JWTDecodeException e) {
+            return null;
+        }
+    }
+
+    public Long extractUserId(String token) {
+        try {
+            DecodedJWT decodedJWT = decodeToken(token);
+            return decodedJWT.getClaim("userId").asLong();
+        } catch (JWTDecodeException e) {
+            return null;
+        }
     }
 
     public Date extractExpiration(String token) {
-        return extractClaim(token, DecodedJWT::getExpiresAt);
+        try {
+            DecodedJWT decodedJWT = decodeToken(token);
+            return decodedJWT.getExpiresAt();
+        } catch (JWTDecodeException e) {
+            return null;
+        }
     }
 
-    public <T> T extractClaim(String token, java.util.function.Function<DecodedJWT, T> claimResolver) {
-        DecodedJWT decodedJWT = decodeToken(token);
-        return claimResolver.apply(decodedJWT);
-    }
-
-    private DecodedJWT decodeToken(String token) {
+    private DecodedJWT decodeToken(String token) throws JWTDecodeException {
         return JWT.require(Algorithm.HMAC512(secretKey))
                 .build()
                 .verify(token);
     }
 
     public boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        try {
+            Date expiration = extractExpiration(token);
+            return expiration != null && expiration.before(new Date());
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     public boolean validateToken(String token) {
-        return !isTokenExpired(token);
+        try {
+            decodeToken(token);
+            return !isTokenExpired(token);
+        } catch (JWTDecodeException e) {
+            return false;
+        }
     }
 }

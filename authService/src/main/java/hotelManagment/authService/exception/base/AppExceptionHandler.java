@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
@@ -18,6 +17,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class AppExceptionHandler   {
@@ -125,17 +128,17 @@ public class AppExceptionHandler   {
     }
 
 
-    @ExceptionHandler (value = {AccessDeniedException.class})
-    @ResponseBody
-    public ResponseEntity<?> accessDeniedException(AccessDeniedException exception) {
-        HttpStatus httpStatus = HttpStatus.OK;
-        String message = exception.getMessage();
-
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, 99, message);
-        Gson gson = new GsonBuilder().serializeNulls().create();
-        String jsonResponse = gson.toJson(errorResponse);
-        return ResponseEntity.status(httpStatus).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).body(jsonResponse);
-    }
+//    @ExceptionHandler (value = {AccessDeniedException.class})
+//    @ResponseBody
+//    public ResponseEntity<?> accessDeniedException(AccessDeniedException exception) {
+//        HttpStatus httpStatus = HttpStatus.OK;
+//        String message = exception.getMessage();
+//
+//        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, 99, message);
+//        Gson gson = new GsonBuilder().serializeNulls().create();
+//        String jsonResponse = gson.toJson(errorResponse);
+//        return ResponseEntity.status(httpStatus).contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).body(jsonResponse);
+//    }
 
 
     // custom exception start
@@ -217,6 +220,18 @@ public class AppExceptionHandler   {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorResponse);
     }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.UNAUTHORIZED.value());
+        response.put("error", "Unauthorized");
+        response.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
 
 
     /*@ExceptionHandler(value = MessageResponseValidationException.class)
